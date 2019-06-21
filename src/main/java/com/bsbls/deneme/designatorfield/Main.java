@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        GUITester.test(Main::test);
+        GUITester.test(Main::test, "Nimbus"); // Nimbus, Windows, Metal
     }
 
     private static JPanel test() {

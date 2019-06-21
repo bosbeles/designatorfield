@@ -1,6 +1,7 @@
 package com.bsbls.deneme.designatorfield;
 
 import org.apache.commons.lang3.tuple.Pair;
+import sun.swing.DefaultLookup;
 
 import javax.swing.*;
 import java.awt.*;
@@ -115,6 +116,8 @@ public class JREDesignatorField extends JPanel {
         private JLabel linkLabel;
         private JLabel jreLabel;
         private JButton button;
+        private Color bg;
+        private Color fg;
 
         public DesignatorRender() {
             panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -136,11 +139,21 @@ public class JREDesignatorField extends JPanel {
 
         @Override
         public Component getListCellRendererComponent(JList<? extends Pair<Link, String>> list, Pair<Link, String> value, int index, boolean isSelected, boolean cellHasFocus) {
+            JList.DropLocation dropLocation = list.getDropLocation();
+            if (dropLocation != null
+                    && !dropLocation.isInsert()
+                    && dropLocation.getIndex() == index) {
+
+                bg = DefaultLookup.getColor(panel, panel.getUI(), "List.dropCellBackground");
+                fg = DefaultLookup.getColor(panel, panel.getUI(), "List.dropCellForeground");
+
+                isSelected = true;
+            }
 
 
             if (isSelected) {
-                panel.setBackground(list.getSelectionBackground());
-                panel.setForeground(list.getSelectionForeground());
+                panel.setBackground(bg == null ? list.getSelectionBackground() : bg);
+                panel.setForeground(fg == null ? list.getSelectionForeground() : fg);
             } else {
                 panel.setBackground(list.getBackground());
                 panel.setForeground(list.getForeground());
@@ -149,7 +162,7 @@ public class JREDesignatorField extends JPanel {
 
             boolean multicast = value.getKey() != null && value.getKey().isMulticast;
 
-            linkLabel.setText("Link " + String.valueOf(value.getLeft()));
+            linkLabel.setText("Link " + value.getLeft());
             jreLabel.setText(value.getRight());
 
             if (index >= 0)
