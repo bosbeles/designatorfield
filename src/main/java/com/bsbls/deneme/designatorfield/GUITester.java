@@ -1,6 +1,7 @@
 package com.bsbls.deneme.designatorfield;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.util.function.Supplier;
 
 public class GUITester {
@@ -10,14 +11,41 @@ public class GUITester {
         test(()-> panel, null);
     }
 
-    public static void test(Supplier<JPanel> panelSupplier) {
+    public static void test(Supplier<JComponent> panelSupplier) {
         test(panelSupplier, "Nimbus");
     }
 
-    public static void test(Supplier<JPanel> panelSupplier, String lookAndFeel) {
+    public static void test(Supplier<JComponent> panelSupplier, String lookAndFeel) {
         setLookAndFeel(lookAndFeel);
 
         JFrame frame = new JFrame();
+
+
+        JMenu menu = new JMenu("Look and Feel");
+        // Get all the available look and feel that we are going to use for
+        // creating the JMenuItem and assign the action listener to handle
+        // the selection of menu item to change the look and feel.
+        UIManager.LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
+        for (UIManager.LookAndFeelInfo lookAndFeelInfo : lookAndFeels) {
+            JMenuItem item = new JMenuItem(lookAndFeelInfo.getName());
+            item.addActionListener(event -> {
+                try {
+                    // Set the look and feel for the frame and update the UI
+                    // to use a new selected look and feel.
+                    UIManager.setLookAndFeel(lookAndFeelInfo.getClassName());
+                    SwingUtilities.updateComponentTreeUI(frame);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            menu.add(item);
+        }
+
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(menu);
+
+
+        frame.setJMenuBar(menuBar);
         frame.setContentPane(panelSupplier.get());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
