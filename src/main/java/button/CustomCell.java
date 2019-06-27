@@ -11,13 +11,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Random;
 
-public class CustomCell extends JPanel {
+public class CustomCell<T> extends JPanel {
 
     public static final Color DISABLED = new Color(214, 217, 223);
     public static final Color PRIMARY = new Color(0, 122, 204);
     public static final Color SECONDARY = new Color(238, 238, 242);
 
 
+
+    protected T data;
 
     protected boolean selected;
     protected VerticalLabel selectionLabel;
@@ -32,17 +34,18 @@ public class CustomCell extends JPanel {
     private Action action;
 
 
-    public CustomCell(String text) {
-        this(text, false);
+    public CustomCell(T data, String text) {
+        this(data, text, false);
     }
 
-    public CustomCell(String text, boolean vertical) {
-        this(text, vertical, PRIMARY, SECONDARY, DISABLED);
+    public CustomCell(T data, String text, boolean vertical) {
+        this(data, text, vertical, PRIMARY, SECONDARY, DISABLED);
     }
 
 
-    public CustomCell(String text, boolean vertical, Color primaryColor, Color secondaryColor, Color disabledColor) {
+    public CustomCell(T data, String text, boolean vertical, Color primaryColor, Color secondaryColor, Color disabledColor) {
         super();
+        this.data = data;
 
         this.setBorder(new MatteBorder(1, 1, 1, 1, borderColor));
         this.primaryColor = primaryColor;
@@ -107,31 +110,39 @@ public class CustomCell extends JPanel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (isEnabled()) {
-                    if (isSelected()) {
-                        setBackground(primaryColor.darker());
-                    } else {
-                        setBackground(secondaryColor.darker());
-                    }
-                } else {
-
-                }
+                highlight();
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (isEnabled()) {
-                    if (isSelected()) {
-                        setBackground(primaryColor);
-                    } else {
-                        setBackground(secondaryColor);
-                    }
-                }
-                else {
-
-                }
+                dehighlight();
             }
         });
+    }
+
+    public void dehighlight() {
+        if (isEnabled()) {
+            if (isSelected()) {
+                setBackground(primaryColor);
+            } else {
+                setBackground(secondaryColor);
+            }
+        }
+        else {
+
+        }
+    }
+
+    public void highlight() {
+        if (isEnabled()) {
+            if (isSelected()) {
+                setBackground(primaryColor.darker());
+            } else {
+                setBackground(secondaryColor.darker());
+            }
+        } else {
+
+        }
     }
 
     @Override
@@ -149,6 +160,14 @@ public class CustomCell extends JPanel {
 
     public boolean isSelected() {
         return selected;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
     }
 
     public void updateCell() {
@@ -189,7 +208,7 @@ public class CustomCell extends JPanel {
         Random r = new Random();
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                CustomCell cell = new CustomCell((i+1000) + " Diyarbakır");
+                CustomCell cell = new CustomCell(null, (i+1000) + " Diyarbakır");
                 if(i == j) {
                     cell.setEnabled(i != j);
 

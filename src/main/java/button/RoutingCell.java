@@ -5,9 +5,11 @@ import com.bsbls.deneme.designatorfield.GUITester;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Random;
 
-public class RoutingCell extends CustomCell {
+public class RoutingCell<T> extends CustomCell<T> {
 
 
     private static final String TICK = "\u2714";
@@ -20,13 +22,13 @@ public class RoutingCell extends CustomCell {
     private boolean filtered;
 
 
-    public RoutingCell(int size) {
-        this(size, PRIMARY, SECONDARY, DISABLED);
+    public RoutingCell(T data, int size) {
+        this(data, size, PRIMARY, SECONDARY, DISABLED);
     }
 
 
-    public RoutingCell(int size, Color primaryColor, Color secondaryColor, Color disabledColor) {
-        super("", false, primaryColor, secondaryColor, disabledColor);
+    public RoutingCell(T data, int size, Color primaryColor, Color secondaryColor, Color disabledColor) {
+        super(data, "", false, primaryColor, secondaryColor, disabledColor);
 
         loadIcons();
         filterLabel = new JLabel();
@@ -125,7 +127,7 @@ public class RoutingCell extends CustomCell {
     private static JComponent test() {
         JPanel panel = new JPanel(new GridBagLayout());
         int size = 54;
-        int N = 8;
+        int N = 5;
 
         GridBagConstraints gc = new GridBagConstraints();
         gc.insets = new Insets(2, 2, 2, 2);
@@ -133,19 +135,38 @@ public class RoutingCell extends CustomCell {
         int yoffset = 2;
         Random r = new Random();
         RoutingCell[][] routingCells = new RoutingCell[N][N];
+        CustomCell[] txLinks = new CustomCell[N];
+        CustomCell[] rxLinks = new CustomCell[N];
         for (int i = 0; i < N; i++) {
+            boolean enabled = r.nextBoolean();
             for (int j = 0; j < N; j++) {
-                RoutingCell cell = new RoutingCell(size);
+                final int x = j;
+                final int y = i;
+                RoutingCell cell = new RoutingCell(null, size);
                 routingCells[i][j] = cell;
                 if (i == j) {
                     cell.setEnabled(i != j);
 
                 } else {
-                    cell.setEnabled(r.nextBoolean());
+                    cell.setEnabled(true);
                     cell.setFiltered(r.nextBoolean());
                     cell.setSelected(r.nextBoolean());
 
                 }
+
+                cell.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        rxLinks[y].highlight();
+                        txLinks[x].highlight();
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        rxLinks[y].dehighlight();
+                        txLinks[x].dehighlight();
+                    }
+                });
 
                 gc.gridx = j + xoffset;
                 gc.gridy = i + yoffset;
@@ -160,18 +181,21 @@ public class RoutingCell extends CustomCell {
             gc.gridx = xoffset - 1;
             gc.gridy = i + yoffset;
             gc.fill = GridBagConstraints.BOTH;
-            CustomCell cell = new CustomCell("" + (i + 1000));
+            CustomCell cell = new CustomCell(null, i == 0 ? "HOST" :  "" + (i + 1000));
+            rxLinks[i] = cell;
             cell.setEnabled(true);
             final int cellNo = i;
+
             cell.setAction(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-
+                    /*
                     for (int index = 0; index < N; index++) {
                         if (index != cellNo) {
                             routingCells[cellNo][index].setSelected(cell.isSelected());
                         }
                     }
+                    */
 
                 }
             });
@@ -184,8 +208,33 @@ public class RoutingCell extends CustomCell {
             gc.gridx = i + xoffset;
             gc.weighty = 1;
             gc.fill = GridBagConstraints.BOTH;
-            CustomCell cell = new CustomCell("" + (i + 1000), true);
+            CustomCell cell = new CustomCell(null, i == 0 ? "HOST" : "" + (i + 1000), true);
             cell.setEnabled(true);
+            txLinks[i] = cell;
+            final int cellNo = i;
+            cell.setAction(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    /*
+                    for (int index = 0; index < N; index++) {
+                        if (index != cellNo) {
+                            routingCells[index][cellNo].setSelected(cell.isSelected());
+                        }
+                    }
+                    */
+
+                }
+            });
+            // cell.setPreferredSize(new Dimension(30, 120));
+            panel.add(cell, gc);
+        }
+
+        for (int i = 1; i < N; i++) {
+            gc.gridx = xoffset - 2;
+            gc.gridy = i + yoffset;
+            gc.weighty = 0;
+            gc.fill = GridBagConstraints.NONE;
+            RoutingCell cell = new RoutingCell(null, size);
             final int cellNo = i;
             cell.setAction(new AbstractAction() {
                 @Override
@@ -193,13 +242,37 @@ public class RoutingCell extends CustomCell {
 
                     for (int index = 0; index < N; index++) {
                         if (index != cellNo) {
-                            routingCells[index][cellNo].setSelected(cell.isSelected());
+                            routingCells[cellNo][index].setEnabled(cell.isSelected());
+                            rxLinks[cellNo].setSelected(cell.isSelected());
                         }
                     }
 
+
                 }
             });
-            // cell.setPreferredSize(new Dimension(30, 120));
+            panel.add(cell, gc);
+        }
+
+        for (int i = 1; i < N; i++) {
+            gc.gridx = i + xoffset;
+            gc.gridy = yoffset - 2;
+            gc.fill = GridBagConstraints.NONE;
+            RoutingCell cell = new RoutingCell(null, size);
+            final int cellNo = i;
+            cell.setAction(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                    for (int index = 0; index < N; index++) {
+                        if (index != cellNo) {
+                            routingCells[index][cellNo].setEnabled(cell.isSelected());
+                            txLinks[cellNo].setSelected(cell.isSelected());
+                        }
+                    }
+
+
+                }
+            });
             panel.add(cell, gc);
         }
 
