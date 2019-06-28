@@ -16,7 +16,11 @@ public class CustomCell<T> extends JPanel {
     public static final Color DISABLED = new Color(214, 217, 223);
     public static final Color PRIMARY = new Color(0, 122, 204);
     public static final Color SECONDARY = new Color(238, 238, 242);
+    public static final Color BORDER_COLOR = new Color(147, 147, 147);
 
+
+    public static ImageIcon whiteFilterIcon;
+    public static ImageIcon blackFilterIcon;
 
 
     protected T data;
@@ -24,12 +28,14 @@ public class CustomCell<T> extends JPanel {
     protected boolean selected;
     protected VerticalLabel selectionLabel;
 
+    protected JLabel filterLabel;
+    protected boolean filtered;
 
 
     protected Color primaryColor;
     protected Color secondaryColor;
     protected Color disabledColor;
-    protected Color borderColor = new Color(147, 147, 147);
+    protected Color borderColor = BORDER_COLOR;
     protected JPopupMenu popupMenu;
     private Action action;
 
@@ -45,6 +51,10 @@ public class CustomCell<T> extends JPanel {
 
     public CustomCell(T data, String text, boolean vertical, Color primaryColor, Color secondaryColor, Color disabledColor) {
         super();
+
+        loadIcons();
+        filterLabel = new JLabel();
+
         this.data = data;
 
         this.setBorder(new MatteBorder(1, 1, 1, 1, borderColor));
@@ -55,10 +65,15 @@ public class CustomCell<T> extends JPanel {
         VerticalLabel verticalLabel = new VerticalLabel(text);
         this.selectionLabel = verticalLabel;
         setVertical(vertical);
-        this.selectionLabel.setFont(new Font("TimesRoman", Font.PLAIN, 20));
+        this.selectionLabel.setFont(new Font("TimesRoman", Font.PLAIN, 16));
 
         setLayout(new BorderLayout());
 
+
+        JPanel panel = empty(getWidth(), 12);
+        panel.setLayout(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+        panel.add(filterLabel);
+        this.add(panel, BorderLayout.NORTH);
 
         JPanel p2 = new JPanel(new GridBagLayout());
         p2.setOpaque(false);
@@ -68,7 +83,22 @@ public class CustomCell<T> extends JPanel {
 
         this.add(p2, BorderLayout.CENTER);
 
+        JPanel empty = empty(getWidth(), 12);
+        this.add(empty, BorderLayout.SOUTH);
+
+
         addMouseListener();
+    }
+
+    protected synchronized void loadIcons() {
+        if (blackFilterIcon == null) {
+            blackFilterIcon = new ImageIcon(new ImageIcon(getClass().getResource("/filled-filter-16-black.png")).getImage().getScaledInstance(8, 8, Image.SCALE_SMOOTH));
+        }
+
+        if (whiteFilterIcon == null) {
+            whiteFilterIcon = new ImageIcon(new ImageIcon(getClass().getResource("/filled-filter-16-white.png")).getImage().getScaledInstance(8, 8, Image.SCALE_SMOOTH));
+        }
+
     }
 
     public void setVertical(boolean vertical) {
@@ -149,6 +179,7 @@ public class CustomCell<T> extends JPanel {
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         selectionLabel.setEnabled(enabled);
+        filterLabel.setEnabled(enabled);
         updateCell();
     }
 
@@ -160,6 +191,15 @@ public class CustomCell<T> extends JPanel {
 
     public boolean isSelected() {
         return selected;
+    }
+
+    public void setFiltered(boolean filtered) {
+        this.filtered = filtered;
+        updateCell();
+    }
+
+    public boolean isFiltered() {
+        return filtered;
     }
 
     public T getData() {
@@ -180,8 +220,23 @@ public class CustomCell<T> extends JPanel {
                 setBackground(secondaryColor);
             }
 
+            if (isFiltered()) {
+                setComponentPopupMenu(popupMenu);
+                filterLabel.setIcon(selected ? whiteFilterIcon : blackFilterIcon);
+            } else {
+                setComponentPopupMenu(null);
+                filterLabel.setIcon(null);
+            }
+
         } else {
             setComponentPopupMenu(null);
+
+            if (isFiltered()) {
+                filterLabel.setIcon(blackFilterIcon);
+            } else {
+                filterLabel.setIcon(null);
+            }
+
             setBackground(disabledColor);
             selectionLabel.setForeground(Color.BLACK);
         }
@@ -190,6 +245,15 @@ public class CustomCell<T> extends JPanel {
     public void setAction(Action action) {
         this.action = action;
     }
+
+    protected JPanel empty(int width, int height) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setPreferredSize(new Dimension(width, height));
+        panel.setMinimumSize(panel.getPreferredSize());
+        return panel;
+    }
+
 
     public static void main(String[] args) {
         GUITester.test(CustomCell::test, "Nimbus");
